@@ -3,12 +3,23 @@ using RPG.Actors.Stats;
 using System.Collections.Generic;
 
 namespace RPG.Spells {
-    public class BuffCollection : IStatModifier {
-        private Actor owner;
+    public class BuffCollection {
         private List<IBuff> buffs;
 
+        public Actor Owner { 
+            get; private set; 
+        }
+
+        public IList<IBuff> Buffs { 
+            get { return buffs.AsReadOnly(); } 
+        }
+
+        public delegate void BuffEvent(Actor actor, IBuff buff);
+        public event BuffEvent OnBuffApplied;
+        public event BuffEvent OnBuffRemoved;
+    
         public BuffCollection(Actor owner) {
-            this.owner = owner;
+            this.Owner = owner;
             this.buffs = new List<IBuff>();
         }
 
@@ -21,7 +32,7 @@ namespace RPG.Spells {
 
             } else {
                 this.buffs.Add(buff);
-                buff.OnApplied(this.owner);
+                buff.OnApplied(this.Owner);
             }
         }
 
@@ -32,7 +43,7 @@ namespace RPG.Spells {
             var index = this.buffs.IndexOf(buff);
             if (index >= 0) {
                 this.buffs.RemoveAt(index);
-                buff.OnRemoved(this.owner);
+                buff.OnRemoved(this.Owner);
             }
         }
     }

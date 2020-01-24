@@ -21,7 +21,7 @@ public class Program {
         var hero = new Actor("Hero", 1, heroClass);
         var boss = new Actor("Boss", 1, bossClass);
 
-        hero.Buffs.Apply(new Buff());
+        hero.Buffs.Apply(new TestBuff());
 		
         var turnHandler = new TurnHandler();
         turnHandler.Queue(hero);

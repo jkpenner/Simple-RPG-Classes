@@ -31,10 +31,14 @@ namespace RPG.Actors {
             this.Stats.OnCalculateStats += OnCalculateStats;
 
             this.Resources = new ActorResources();
+
             this.Resources.Set(ResourceKeys.Health,   this.Stats.Health);
             this.Resources.Set(ResourceKeys.Mana,     this.Stats.Mana);
             this.Resources.Set(ResourceKeys.Speed,    this.Stats.Speed);
 
+            if (this.Resources.Has(ResourceKeys.Health, ResourceKeys.Mana, ResourceKeys.Speed)) {
+                Console.WriteLine("Error does not have a reqiured resource");
+            }
             this.Buffs = new BuffCollection(this);
             this.Inventory = new Inventory();     //    GetComponent<Inventory>();
             this.Equipment = new Equipment(this);
@@ -49,7 +53,6 @@ namespace RPG.Actors {
         {
             var bonus = this.Stats.Get(StatKeys.ExpBonus);
             var expAmount = (int)Math.Round(amount + (amount * bonus));
-
             this.Level.GiveExp(Math.Max(expAmount, 0));
         }
 
@@ -69,8 +72,8 @@ namespace RPG.Actors {
         
         private void OnStatsChange(ActorStats stats) 
         {
-            this.Resources.ClampBelow(ResourceKeys.Health, this.Stats.Health);
-            this.Resources.ClampBelow(ResourceKeys.Mana, this.Stats.Mana);
+            this.Resources.Clamp(ResourceKeys.Health, 0f, this.Stats.Health);
+            this.Resources.Clamp(ResourceKeys.Mana, 0f, this.Stats.Mana);
         }
     }
 }

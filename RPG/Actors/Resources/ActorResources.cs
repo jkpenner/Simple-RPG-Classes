@@ -24,6 +24,14 @@ namespace RPG.Actors.Resources {
             this._resources = new Dictionary<ResourceKeys, float>();
         }
 
+        public bool Has(params ResourceKeys[] keys) {
+            foreach(var key in keys) {
+                if (this._resources.ContainsKey(key) == false)
+                    return false;
+            }
+            return true;
+        }
+
         public void Set(ResourceKeys key, float value) {
             this._resources[key] = value;
         }
@@ -39,8 +47,16 @@ namespace RPG.Actors.Resources {
             this._resources.Clear();
         }
 
-        public void ClampBelow(ResourceKeys key, float value) {
-            this.Set(key, Math.Clamp(this.Get(key), 0f, value));
+        public void Clamp(ResourceKeys key, float min, float max) {
+            this.Set(key, Math.Clamp(this.Get(key), min, max));
+        }
+
+        public void Max(ResourceKeys key, float value) {
+            this.Set(key, Math.Max(this.Get(key), value));
+        }
+
+        public void Min(ResourceKeys key, float value) {
+            this.Set(key, Math.Min(this.Get(key), value));
         }
     }
 }

@@ -1,14 +1,14 @@
 namespace RPG.Actors.Stats {
     public enum StatKeys {
         None    = 0,
-        Health  = 1,
-        Mana    = 2,
 
-        Strength    = 10,
-        Stamina     = 11,
-        Wisdom      = 12,
-        Speed       = 13,
+        [RequiredStat] Health  = 1,
+        [RequiredStat] Mana    = 2,
 
+        [RequiredStat] Strength    = 10,
+        [RequiredStat] Stamina     = 11,
+        [RequiredStat] Wisdom      = 12,
+        [RequiredStat] Speed       = 13,
 
         ExpBonus    = 20,
     }
