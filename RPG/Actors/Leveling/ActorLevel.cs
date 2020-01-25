@@ -19,9 +19,9 @@ namespace RPG.Actors.Leveling { // : MonoBehavour {
 
         public event Action<ActorLevel> LevelChangeEvent;
         
-        public ActorLevel(int level, IExpTemplate expTemplate) {
+        public ActorLevel(IActor owner, IExpTemplate expTemplate) {
             this.IsScaled = false;
-            this.NormalLevel = level;
+            this.NormalLevel = 0;
             this.ScaledLevel = 0;
             
             this.Exp = 0;

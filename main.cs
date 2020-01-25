@@ -39,7 +39,9 @@ public class Program {
         var hero = new Actor("Hero", 1, heroClass);
         var boss = new Actor("Boss", 1, bossClass);
 
-        hero.Buffs.Apply(new TestBuff());
+        var buffs = new BuffCollection(hero);
+        buffs.Apply(new TestBuff());
+
         hero.Resources.SetToDefault(ResourceKeys.Health);
 
 
@@ -97,3 +99,4 @@ public class Program {
             .Build();
     }
 }
+

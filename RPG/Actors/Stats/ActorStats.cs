@@ -18,13 +18,13 @@ namespace RPG.Actors.Stats {
         public delegate void StatEvent(ActorStats stats);
         public event StatEvent OnStatsChange;
 
-        public ActorStats(IStatTemplate statTemplate, int level) {
+        public ActorStats(IActor owner, IStatTemplate statTemplate) {
             this.statTemplate = statTemplate;
 
             this.stats = new StatCollection();
             this.mods = new StatModCollection();
 
-            this.CalculateStats(level);
+            //this.CalculateStats(level);
         }
 
         public float Get(StatKeys stat) {

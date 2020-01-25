@@ -6,40 +6,82 @@ using RPG.Actors.Resources;
 using RPG.Spells;
 
 namespace RPG.Actors {
-    public class Actor { // : MonoBehaviour {
-        public readonly string Name;
-        public readonly ActorClass Class;
-        public readonly ActorLevel Level;
-        public readonly ActorStats Stats;
-        public readonly ActorResources Resources;
+    public class Actor : IActor { // : MonoBehaviour {
+        private ActorLevel _level;
+        private ActorStats _stats;
+        private ActorResources _resources;
 
+        public string Name { get; private set; }
         public bool IsAlive { get; private set; }
-
-        // Move out of actor class
-        public BuffCollection Buffs { get; private set; }
-        public Inventory Inventory { get; private set; }
-        public Equipment Equipment { get; private set; }
+        public ActorClass Class { get; private set; }
         
+        public ActorLevel Level { 
+            get {
+                if (this._level == null) {
+                    this._level = new ActorLevel(this, Class?.ExpTemplate);
+                }
+                return this._level;
+            }
+        }
+
+        public ActorStats Stats { 
+            get {
+                if (this._stats == null) {
+                    this._stats = new ActorStats(this, Class?.StatTemplate);
+                }
+                return this._stats;
+            }
+        }
+
+        public ActorResources Resources { 
+            get {
+                if (this._resources == null) {
+                    this._resources = new ActorResources(this, Class?.ResourceTemplate);
+                }
+                return this._resources;
+            }
+        }
+        
+        // This will be replace with assigning values in the inspector
+        // once imported in unity.
         public Actor(string name, int level, ActorClass actorClass)
         {
             this.Name = name;
+
+            // Assign actor's class
             this.Class = actorClass;
+
+            // Actor is defaultly alive.
             this.IsAlive = true;
-            
-            this.Level = new ActorLevel(level, Class.ExpTemplate);
-            this.Level.LevelChangeEvent += OnLevelChange;
-            
-            this.Stats = new ActorStats(this.Class.StatTemplate, level);
-            this.Stats.OnStatsChange += OnStatsChanged;
-            this.Stats.OnCalculateStats += OnCalculateStats;
 
-            this.Resources = new ActorResources(this);
-            this.Resources.OnResourceChanged += OnResourceChanged;
+            // Test Methods
+            this.Awake();
+            this.OnEnable();
+        }
 
-            // Move out of actor class
-            this.Buffs = new BuffCollection(this);
-            this.Inventory = new Inventory();     //    GetComponent<Inventory>();
-            this.Equipment = new Equipment(this);
+        // Unity Method
+        private void Awake() {
+            // Set the actor's level
+            this.Level.SetLevel(1);
+        }
+
+        // Unity Method
+        private void OnEnable() {
+            // Start listening to all required events
+            this.Level.LevelChangeEvent         += OnLevelChange;
+            this.Stats.OnStatsChange            += OnStatsChanged;
+            this.Resources.OnResourceChanged    += OnResourceChanged;
+
+            // Trigger level change with current level
+            this.OnLevelChange(this.Level);
+        }
+
+        // Unity Method
+        private void OnDisable() {
+            // Stop listening to all required events
+            this.Level.LevelChangeEvent         -= OnLevelChange;
+            this.Stats.OnStatsChange            -= OnStatsChanged;
+            this.Resources.OnResourceChanged    -= OnResourceChanged;
         }
 
         public void CalculateStats() {
@@ -60,13 +102,6 @@ namespace RPG.Actors {
             // will restore the actor's health / mana on level up
             this.Resources.SetToDefault(ResourceKeys.Health);
             this.Resources.SetToDefault(ResourceKeys.Mana);
-        }
-
-        private void OnCalculateStats(StatModCollection mods)
-        {
-            // Should be moved out of the actor class
-            this.Equipment.OnCalculateStats(mods);
-            //this.Buffs.OnCalculateStats(mods);
         }
         
         private void OnStatsChanged(ActorStats stats) 

@@ -5,19 +5,19 @@ namespace RPG.Actors.Resources
 {
     public class ActorResources
     {
-        private Actor owner;
+        private IActor owner;
         private ResourceCollection resources;
         private IResourceTemplate resourceTemplate;
 
-        public ActorResources(Actor actor)
+        public ActorResources(IActor owner, IResourceTemplate template)
         {
-            this.owner = actor;
+            this.owner = owner;
             this.resources = new ResourceCollection();
-            this.resourceTemplate = actor.Class.ResourceTemplate;
+            this.resourceTemplate = template;
             if (this.resourceTemplate != null)
             {
                 //Console.WriteLine("{0}: Applying resource Template", this.owner.Name);
-                this.resourceTemplate.ApplyDefaults(actor, this.resources);
+                this.resourceTemplate.ApplyDefaults(owner, this.resources);
             }
         }
 
@@ -32,7 +32,8 @@ namespace RPG.Actors.Resources
         {
             float newValue = value;
             if (this.resourceTemplate != null) {
-                newValue = this.resourceTemplate.ApplyLimits(this.owner, key, value);
+                newValue = this.resourceTemplate
+                    .GetClampedValue(this.owner, key, value);
                 
             }
 
@@ -46,7 +47,7 @@ namespace RPG.Actors.Resources
 
         public void SetToDefault(ResourceKeys key)
         {
-            Set(key, resourceTemplate?.GetDefault(owner, key) ?? 0f);
+            Set(key, resourceTemplate?.GetDefaultValue(owner, key) ?? 0f);
         }
 
         public void ApplyLimits() {
