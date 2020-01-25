@@ -13,6 +13,9 @@ namespace RPG.Actors {
         public readonly ActorStats Stats;
         public readonly ActorResources Resources;
 
+        public bool IsAlive { get; private set; }
+
+        // Move out of actor class
         public BuffCollection Buffs { get; private set; }
         public Inventory Inventory { get; private set; }
         public Equipment Equipment { get; private set; }
@@ -20,37 +23,30 @@ namespace RPG.Actors {
         public Actor(string name, int level, ActorClass actorClass)
         {
             this.Name = name;
-                
             this.Class = actorClass;
+            this.IsAlive = true;
             
             this.Level = new ActorLevel(level, Class.ExpTemplate);
             this.Level.LevelChangeEvent += OnLevelChange;
             
             this.Stats = new ActorStats(this.Class.StatTemplate, level);
-            this.Stats.OnStatsChange += OnStatsChange;
+            this.Stats.OnStatsChange += OnStatsChanged;
             this.Stats.OnCalculateStats += OnCalculateStats;
 
-            this.Resources = new ActorResources();
+            this.Resources = new ActorResources(this);
+            this.Resources.OnResourceChanged += OnResourceChanged;
 
-            this.Resources.Set(ResourceKeys.Health,   this.Stats.Health);
-            this.Resources.Set(ResourceKeys.Mana,     this.Stats.Mana);
-            this.Resources.Set(ResourceKeys.Speed,    this.Stats.Speed);
-
-            if (this.Resources.Has(ResourceKeys.Health, ResourceKeys.Mana, ResourceKeys.Speed)) {
-                Console.WriteLine("Error does not have a reqiured resource");
-            }
+            // Move out of actor class
             this.Buffs = new BuffCollection(this);
             this.Inventory = new Inventory();     //    GetComponent<Inventory>();
             this.Equipment = new Equipment(this);
         }
 
-        public void CalculateStats()
-        {
+        public void CalculateStats() {
             this.Stats.CalculateStats(this.Level.Current);
         }
 
-        public void GiveExp(int amount)
-        {
+        public void GiveExp(int amount) {
             var bonus = this.Stats.Get(StatKeys.ExpBonus);
             var expAmount = (int)Math.Round(amount + (amount * bonus));
             this.Level.GiveExp(Math.Max(expAmount, 0));
@@ -60,20 +56,36 @@ namespace RPG.Actors {
         {
             this.Stats.CalculateStats(level.Current);
 
-            this.Resources.Set(ResourceKeys.Health, this.Stats.Health);
-            this.Resources.Set(ResourceKeys.Mana, this.Stats.Mana);
+            // Set vital stats to their default values this
+            // will restore the actor's health / mana on level up
+            this.Resources.SetToDefault(ResourceKeys.Health);
+            this.Resources.SetToDefault(ResourceKeys.Mana);
         }
 
         private void OnCalculateStats(StatModCollection mods)
         {
+            // Should be moved out of the actor class
             this.Equipment.OnCalculateStats(mods);
             //this.Buffs.OnCalculateStats(mods);
         }
         
-        private void OnStatsChange(ActorStats stats) 
+        private void OnStatsChanged(ActorStats stats) 
         {
-            this.Resources.Clamp(ResourceKeys.Health, 0f, this.Stats.Health);
-            this.Resources.Clamp(ResourceKeys.Mana, 0f, this.Stats.Mana);
+            // Make sure all resources are correctly 
+            // restricted when the stats values change.
+            this.Resources.ApplyLimits();
+        }
+
+        private void OnResourceChanged(ResourceKeys key, float value) {
+            if (key == ResourceKeys.Health && IsAlive && value <= 0f) {
+                IsAlive = false;
+            }
+        }
+
+        public void PrintStats() {
+            Console.WriteLine("{0}: IsAlive: {5}, Health: {1}/{2}, Speed: {3}/{4}", this.Name,
+                this.Resources.Get(ResourceKeys.Health), this.Stats.Get(StatKeys.Health),
+                this.Resources.Get(ResourceKeys.Speed), this.Stats.Get(StatKeys.Speed), IsAlive);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RPG.Actors;
 using RPG.Actors.Resources;
@@ -15,7 +16,7 @@ namespace Game {
                 return null;
 
             var actor = this._turnQueue[0];
-            if (actor.Resources.Speed > 0f)
+            if (actor.Resources.Get(ResourceKeys.Speed) > 0f)
                 return null;
 
             this._turnQueue.RemoveAt(0);
@@ -23,9 +24,9 @@ namespace Game {
         }
 
         public void Queue(Actor actor) {
+            var actorSpeed = actor.Resources.Get(ResourceKeys.Speed);
             for(var i = 0; i < this._turnQueue.Count; i++) {
-                var actorSpeed = actor.Resources.Speed;
-                var otherSpeed = this._turnQueue[i].Resources.Speed;
+                var otherSpeed = this._turnQueue[i].Resources.Get(ResourceKeys.Speed);
                 
                 if (actorSpeed < otherSpeed) {
                     this._turnQueue.Insert(i, actor);
@@ -38,14 +39,9 @@ namespace Game {
 
         public void UpdateTurns() {
             foreach(var actor in this._turnQueue) {
-                float speed = actor.Resources.Speed;
-
-                speed -= 1;
-                if (speed < 0f) {
-                    speed = 0f;
-                }
-
-                actor.Resources.Speed = speed;
+                float speed = actor.Resources.Get(ResourceKeys.Speed);
+                speed = Math.Max(speed - 1f, 0f);
+                actor.Resources.Set(ResourceKeys.Speed, speed);
             }
         }
     }
