@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace RPG.Actors.Stats {
+    // Used to allow limited access to StatModCollection
     public class CalculateStatsArgs {
         public Dictionary<StatAsset, StatModCollection> _mods;
 
