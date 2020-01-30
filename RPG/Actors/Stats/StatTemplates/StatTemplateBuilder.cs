@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace RPG.Actors.Stats {
     public class StatTemplateBuilder {
-        private Dictionary<StatKeys, StatContext> _contexts;
+        private Dictionary<StatAsset, StatContext> _contexts;
 
         public StatTemplateBuilder() {
-            this._contexts = new Dictionary<StatKeys, StatContext>();
+            this._contexts = new Dictionary<StatAsset, StatContext>();
         }
 
-        private StatContext Get(StatKeys key) {
+        private StatContext Get(StatAsset key) {
             if(this._contexts.ContainsKey(key) == false) {
                 this._contexts[key] = new StatContext();
             }
             return this._contexts[key];
         }
 
-        public StatTemplateBuilder Set(StatKeys key, float value, float perLevel = 0) {
+        public StatTemplateBuilder Set(StatAsset key, float value, float perLevel = 0) {
             var context = Get(key);
             context.stat = key;
             context.baseValue = value;
@@ -24,7 +24,7 @@ namespace RPG.Actors.Stats {
             return this;
         }
 
-        public StatTemplateBuilder Link(StatKeys key, StatKeys link, float percent) {
+        public StatTemplateBuilder Link(StatAsset key, StatAsset link, float percent) {
             var context = Get(key);
             context.links.Add(new StatLink(link, percent));
             return this;

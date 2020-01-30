@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace RPG.Actors.Stats {
     public class StatTemplate : IStatTemplate { // : ScriptableObject, IStatTemplate
-        private Dictionary<StatKeys, StatContext> _contexts;
+        private Dictionary<StatAsset, StatContext> _contexts;
 
         public StatTemplate() {
-            this._contexts = new  Dictionary<StatKeys, StatContext>();
+            this._contexts = new  Dictionary<StatAsset, StatContext>();
         }
 
         public void AddContext(StatContext context) {
@@ -19,7 +19,7 @@ namespace RPG.Actors.Stats {
             }
         }
 
-        private void CalculateStat(ref StatCollection stats, StatKeys key, int level, StatModCollection mods) {
+        private void CalculateStat(ref StatCollection stats, StatAsset key, int level, StatModCollection mods) {
             if (stats.IsSet(key))
                 return;
 

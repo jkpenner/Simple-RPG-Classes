@@ -2,13 +2,13 @@ using System.Collections.Generic;
 
 namespace RPG.Actors.Stats {
     public class StatContext {
-        public StatKeys stat;
+        public StatAsset stat;
         public float baseValue;
         public float valuePerLevel;
         public List<StatLink> links;
 
         public StatContext() {
-            this.stat = StatKeys.None;
+            this.stat = null;
             this.baseValue = 0;
             this.valuePerLevel = 0;
             this.links = new List<StatLink>();
@@ -24,7 +24,7 @@ namespace RPG.Actors.Stats {
             }
         }
 
-        public StatContext(StatKeys key, float baseValue, float perLevel, List<StatLink> links = null) {
+        public StatContext(StatAsset key, float baseValue, float perLevel, List<StatLink> links = null) {
             this.stat = key;
             this.baseValue = baseValue;
             this.valuePerLevel = perLevel;

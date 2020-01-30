@@ -7,10 +7,10 @@ namespace RPG.Actors {
     public class ActorClass { // : ScriptableObject
             public readonly string Name;
             public readonly IStatTemplate StatTemplate;
-            public readonly IExpTemplate ExpTemplate;
+            public readonly ExpTemplateAsset ExpTemplate;
             public readonly IResourceTemplate ResourceTemplate;
             
-            public ActorClass(string name, IStatTemplate stat, IResourceTemplate resource, IExpTemplate exp) {
+            public ActorClass(string name, IStatTemplate stat, IResourceTemplate resource, ExpTemplateAsset exp) {
                 this.Name = name;
                 this.StatTemplate = stat;
                 this.ResourceTemplate = resource;

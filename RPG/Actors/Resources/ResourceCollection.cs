@@ -1,70 +1,34 @@
 using System;
 using System.Collections.Generic;
 
-namespace RPG.Actors.Resources {
+namespace RPG.Actors.Resources
+{
     public class ResourceCollection
     {
-        private Dictionary<ResourceKeys, float> resources;
-        private Dictionary<ResourceKeys, Action<float>> events;
+        private Dictionary<ResourceAsset, Resource> resources;
 
-        public ResourceCollection() {
-            this.resources = new Dictionary<ResourceKeys, float>();
-            this.events = new Dictionary<ResourceKeys, Action<float>>();
+        public ResourceCollection()
+        {
+            this.resources = new Dictionary<ResourceAsset, Resource>();
         }
 
-        public void Set(ResourceKeys key, float value)
+        public void Set(ResourceAsset resource, float value)
         {
-            bool didChange = true;
-            if (resources.ContainsKey(key))
-            {
-                if (value == resources[key])
-                {
-                    didChange = false;
-                }
-            }
-
-            resources[key] = value;
-            if (didChange && events.ContainsKey(key))
-            {
-                events[key]?.Invoke(value);
-            }
+            this.GetResource(resource).Set(value);
         }
 
-        public float Get(ResourceKeys key)
+        public Resource GetResource(ResourceAsset resource)
         {
-            if (this.IsSet(key))
+            if (this.resources.ContainsKey(resource) == false)
             {
-                return this.resources[key];
+                this.resources[resource] = new Resource();
             }
-            return 0f;
+            return this.resources[resource];
         }
 
-        public bool IsSet(ResourceKeys key)
+        public float Get(ResourceAsset resource)
         {
-            return this.resources.ContainsKey(key);
-        }
-
-        public void AddListener(ResourceKeys key, Action<float> callback)
-        {
-            if (this.events.ContainsKey(key))
-            {
-                this.events[key] += callback;
-            }
-            else
-            {
-                this.events[key] = callback;
-            }
-        }
-
-        public void RemoveListener(ResourceKeys key, Action<float> callback)
-        {
-            if (this.events.ContainsKey(key))
-            {
-                this.events[key] -= callback;
-
-                if (this.events[key] == null)
-                    this.events.Remove(key);
-            }
+            return GetResource(resource).Amount;
         }
     }
 }

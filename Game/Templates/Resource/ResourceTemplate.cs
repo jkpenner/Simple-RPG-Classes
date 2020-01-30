@@ -5,30 +5,30 @@ using RPG.Actors.Stats;
 namespace RPG.Actors.Resources
 {
     public class ResourceTemplate : IResourceTemplate{
-        private Dictionary<ResourceKeys, ResourceContext> contextMap;
+        private Dictionary<ResourceAsset, ResourceContext> contextMap;
 
         public ResourceTemplate() {
-            this.contextMap = new Dictionary<ResourceKeys, ResourceContext>();
+            this.contextMap = new Dictionary<ResourceAsset, ResourceContext>();
         }
 
         public void SetContext(ResourceContext context) {
             this.contextMap.Add(context.resource, context);
         }
 
-        public float GetDefaultValue(IActor actor, ResourceKeys key)
+        public float GetDefaultValue(IActor actor, ResourceAsset resource)
         {
-            if (this.contextMap.ContainsKey(key) == false)
+            if (this.contextMap.ContainsKey(resource) == false)
                 return 0f;
 
-            return GetDefault(actor, contextMap[key]);
+            return GetDefault(actor, contextMap[resource]);
         }
 
-        public float GetClampedValue(IActor actor, ResourceKeys key, float value)
+        public float GetClampedValue(IActor actor, ResourceAsset resource, float value)
         {
-            if (this.contextMap.ContainsKey(key) == false)
+            if (this.contextMap.ContainsKey(resource) == false)
                 return value;
 
-            return ApplyLimits(actor, contextMap[key], value);
+            return ApplyLimits(actor, contextMap[resource], value);
         }
 
         public void ApplyLimits(IActor actor, ResourceCollection resources)

@@ -1,33 +1,48 @@
+using System;
+using System.Collections.Generic;
+
 namespace RPG.Actors.Stats {
+    public class CalculateStatsArgs {
+        public Dictionary<StatAsset, StatModCollection> _mods;
+
+        public CalculateStatsArgs(Dictionary<StatAsset, StatModCollection> mods) {
+            this._mods = mods;
+        }
+
+        public void Apply(StatAsset stat, StatModAsset mod) {
+            if (this._mods.ContainsKey(stat) == false) 
+                this._mods[stat] = new StatModCollection();
+
+            this._mods[stat].Apply(mod);
+        }
+    }
+
     public class ActorStats { // : MonoBehavour {
-        private StatCollection stats;
-        private StatModCollection mods;
+        public delegate void StatModEvent(CalculateStatsArgs mods);
+
         private IStatTemplate statTemplate;
 
-        public float Health     => this.stats.Get(StatKeys.Health);
-        public float Mana       => this.stats.Get(StatKeys.Mana);
+        private StatCollection stats;
+        //private StatModCollection mods;
 
-        public float Strength   => this.stats.Get(StatKeys.Strength);
-        public float Stamina    => this.stats.Get(StatKeys.Stamina);
-        public float Wisdom     => this.stats.Get(StatKeys.Wisdom);
-        public float Speed      => this.stats.Get(StatKeys.Speed);
+        private Dictionary<StatAsset, StatModCollection> mods;
 
-        public delegate void StatModCollectionEvent(StatModCollection mods);
-        public event StatModCollectionEvent OnCalculateStats;
+        private Action onStatsChange;
+        private StatModEvent onPreCalculateStats;
 
-        public delegate void StatEvent(ActorStats stats);
-        public event StatEvent OnStatsChange;
+        public event StatModEvent OnCalculateStats;
 
-        public ActorStats(IActor owner, IStatTemplate statTemplate) {
+        public ActorStats(IStatTemplate statTemplate, Action onStatsChange, StatModEvent onPreCalculateStats = null) {
             this.statTemplate = statTemplate;
 
             this.stats = new StatCollection();
-            this.mods = new StatModCollection();
+            this.mods = new Dictionary<StatAsset, StatModCollection>();//new StatModCollection();
 
-            //this.CalculateStats(level);
+            this.onStatsChange = onStatsChange;
+            this.onPreCalculateStats = onPreCalculateStats;
         }
 
-        public float Get(StatKeys stat) {
+        public float Get(StatAsset stat) {
             return this.stats.Get(stat);
         }
 
@@ -38,14 +53,25 @@ namespace RPG.Actors.Stats {
             this.stats.Clear();
             this.mods.Clear();
 
-            if (this.OnCalculateStats != null)
-                this.OnCalculateStats.Invoke(this.mods);
+            InvokeCalculateStats(new CalculateStatsArgs(this.mods));
 
             this.statTemplate.CalculateStats(
                 ref this.stats, level, this.mods);
 
-            if (this.OnStatsChange != null)
-                this.OnStatsChange.Invoke(this);
+            InvokeStatChange();
+        }
+
+        private void InvokeCalculateStats(CalculateStatsArgs mods) {
+            if (this.onPreCalculateStats != null)
+                this.onPreCalculateStats.Invoke(this.mods);
+
+            if (this.OnCalculateStats != null)
+                this.OnCalculateStats.Invoke(this.mods);
+        }
+
+        private void InvokeStatChange() {
+            if (this.onStatsChange != null)
+                this.onStatsChange.Invoke();
         }
     }
 }

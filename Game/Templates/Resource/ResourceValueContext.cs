@@ -13,7 +13,7 @@ namespace RPG.Actors.Resources
     {
         private ResourceValueType type;
         private float value;
-        private StatKeys stat;
+        private StatAsset stat;
 
         public ResourceValueContext() {
             this.type = ResourceValueType.None;
@@ -24,7 +24,7 @@ namespace RPG.Actors.Resources
             this.value = value;
         }
 
-        public ResourceValueContext(StatKeys stat) {
+        public ResourceValueContext(StatAsset stat) {
             this.type = ResourceValueType.Stat;
             this.stat = stat;
         }
@@ -35,7 +35,7 @@ namespace RPG.Actors.Resources
             {
                 case ResourceValueType.Stat:
                     //Console.WriteLine("(Stat): Getting Value of: {0}", actor.Stats.Get(this.stat));
-                    return actor.Stats.Get(this.stat);
+                    return actor.Get(this.stat);
                 case ResourceValueType.Value:
                     //Console.WriteLine("(Value): Getting Value of: {0}", value);
                     return value;

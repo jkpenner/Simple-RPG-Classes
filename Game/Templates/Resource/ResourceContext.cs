@@ -6,7 +6,7 @@ namespace RPG.Actors.Resources
 {
     public class ResourceContext
     {
-        public ResourceKeys resource;
+        public ResourceAsset resource;
         public ResourceValueContext defaultValue;
         public ResourceValueContext minimumValue;
         public ResourceValueContext maximumValue;

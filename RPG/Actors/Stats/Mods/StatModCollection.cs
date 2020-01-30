@@ -3,97 +3,79 @@ using System.Collections.Generic;
 
 namespace RPG.Actors.Stats {
     public class StatModCollection {
-        private Dictionary<StatModType, Dictionary<StatKeys, float>> _mods;
+        private HashSet<int> _skip;
+        public Dictionary<int, IStatModApplier> _mods;
         
         public StatModCollection() {
-            this._mods = new Dictionary<StatModType, Dictionary<StatKeys, float>>();
-            foreach(StatModType type in Enum.GetValues(typeof(StatModType))) {
-                this._mods[type] = new Dictionary<StatKeys, float>();	
-            }
+            this._skip = new HashSet<int>();
+            this._mods = new Dictionary<int, IStatModApplier>();	
         }
         
-        public void Apply(StatMod mod) {		
-            var dict = this._mods[mod.Type];
-            if (dict.ContainsKey(mod.Stat)) {	
-                if (mod.Type == StatModType.Limit) {
-                    dict[mod.Stat] = Math.Min(dict[mod.Stat], mod.Amount);	
-                } else if (mod.Type == StatModType.Set 
-                    || mod.Type == StatModType.AddSingleMax 
-                    || mod.Type == StatModType.MultiSingleMax) {
-                    dict[mod.Stat] = Math.Max(dict[mod.Stat], mod.Amount);
-                } else {
-                    dict[mod.Stat] += mod.Amount;	
+        public void Apply(StatModAsset mod) {
+            if (mod == null)
+                return;
+            
+            if (_mods.ContainsKey(mod.Order) == false)
+                _mods[mod.Order] = mod.GetModApplier();	
+            
+            _mods[mod.Order].Combine(mod);
+        }
+        
+        public void Clear(bool removeAppliers = false) {
+            if (removeAppliers) {
+                this._mods.Clear();	
+            } else {
+                foreach(var applier in this._mods.Values) {
+                    applier.Clear();	
                 }
-            } else {
-                dict[mod.Stat] = mod.Amount;
-            }
-        }
-
-        public void Apply(StatMod[] mods) {
-            foreach(var mod in mods) {
-                this.Apply(mod);
             }
         }
         
-        public void Clear() {
-            foreach(var modType in this._mods.Values) {
-                modType.Clear();	
-            }
-        }
-        
-        public float GetStatValue(StatKeys stat, float baseValue) {
-            var setMod = GetModValue(stat, StatModType.Set);
-            if (setMod >= 0)
-                return setMod;
+        public float GetValue(float statValue) {
+            var keys = new T[dict.Keys.Count];
+            this._mods.Keys.CopyTo(keys, 0);
+            Array.Sort(keys);
 
-            var limitMod = GetModValue(stat, StatModType.Limit);
-
-            var multiValue = GetModValue(stat, StatModType.Multi);
-            var multiSingleValue = GetModValue(stat, StatModType.MultiSingleMax);
-
-            // MultiSignleMax mods override multiValue if value is higher
-            if (multiSingleValue >= 0 && multiSingleValue > multiValue) {
-                multiValue = multiSingleValue;
-            }
-
-            var addValue = GetModValue(stat, StatModType.Add);
-            var addSingleValue = GetModValue(stat, StatModType.AddSingleMax);
-
-            // AddSignleMax mods override addValue if value is higher
-            if (addSingleValue >= 0 && addSingleValue > addValue) {
-                addValue = addSingleValue;
-            }
-
-            var result = baseValue + addValue;
-            result = result + (result * multiValue);
-
-            if (limitMod >= 0 && result > limitMod) {
-                return limitMod;
-            } else {
-                return result;
-            }
-        }
-        
-        public float GetModValue(StatKeys stat, StatModType type) {
-            var dict = this._mods[type];
-            if (dict.ContainsKey(stat)) {
-                return dict[stat];	
+            foreach(var key in keys) {
+                // Checks if the stat mod handles the pre apply event.
+                if (_mods[key] is IStatModPreApply mod) {
+                    mod.OnPreApply(this);
+                }
             }
             
-            // No value set, assign default value
-            return GetDefaultValue(type);
+            this._skip.Clear();
+            foreach(var key in keys) {
+                var mod = this._mods[key];
+            
+                // Check if mod is skipped.
+                if (this._skip.Contains(key))
+                    continue;
+                
+                // Apply the mod to the stat's value
+                statValue = mod.Apply(statValue);
+                
+                // Checks if the mod stops the apply
+                if (mod is IStatModStopAfterApplied stop)
+                {
+                    if(stop.StopAfterApplied)
+                        break;
+                }
+                
+                // Check if the mod skips a value
+                if (mod is IStatModSkipValue skip)
+                {
+                    if (skip.SkipValue >= 0)
+                        this._skip.Add(skip.SkipValue);
+                }
+            }
+            return statValue;
         }
         
-        public float GetDefaultValue(StatModType type) {
-            switch(type) {
-                case StatModType.Set:
-                case StatModType.Limit:
-                case StatModType.AddSingleMax:
-                case StatModType.MultiSingleMax:
-                    return -1;
-                default:
-                    return 0f;
+        public T GetMod<T>(int key) where T : class, StatModAsset {
+            if (_mods.TryGetValue(key, out var mod)) {
+                return mod as T;
             }
+            return null;
         }
     }
 }

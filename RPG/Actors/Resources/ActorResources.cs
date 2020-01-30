@@ -5,63 +5,77 @@ namespace RPG.Actors.Resources
 {
     public class ActorResources
     {
-        private IActor owner;
         private ResourceCollection resources;
         private IResourceTemplate resourceTemplate;
 
-        public ActorResources(IActor owner, IResourceTemplate template)
+        public event Action<ResourceAsset, float> OnResourceChanged;
+
+        public ActorResources(IActor actor, IResourceTemplate template)
         {
-            this.owner = owner;
             this.resources = new ResourceCollection();
+
             this.resourceTemplate = template;
             if (this.resourceTemplate != null)
             {
-                //Console.WriteLine("{0}: Applying resource Template", this.owner.Name);
-                this.resourceTemplate.ApplyDefaults(owner, this.resources);
+                this.resourceTemplate.ApplyDefaults(actor, this.resources);
             }
         }
 
-        public event Action<ResourceKeys, float> OnResourceChanged;
-
-        public float Get(ResourceKeys key)
+        public float Get(ResourceAsset resource)
         {
-            return this.resources.Get(key);
+            return this.resources.Get(resource);
         }
 
-        public void Set(ResourceKeys key, float value)
+        public void Set(IActor actor, ResourceAsset resource, float value)
         {
             float newValue = value;
             if (this.resourceTemplate != null) {
                 newValue = this.resourceTemplate
-                    .GetClampedValue(this.owner, key, value);
+                    .GetClampedValue(actor, resource, value);
                 
             }
 
-            if (newValue != this.resources.Get(key))
+            if (newValue != this.resources.Get(resource))
             {
-                this.resources.Set(key, newValue);
+                this.resources.Set(resource, newValue);
                 // Trigger event here
-                OnResourceChanged?.Invoke(key, newValue);
+                OnResourceChanged?.Invoke(resource, newValue);
             }
         }
 
-        public void SetToDefault(ResourceKeys key)
+        public void SetToDefault(IActor actor, ResourceAsset resource)
         {
-            Set(key, resourceTemplate?.GetDefaultValue(owner, key) ?? 0f);
+            Set(actor, resource, this.resourceTemplate?.GetDefaultValue(actor, resource) ?? 0f);
         }
 
-        public void ApplyLimits() {
-            this.resourceTemplate.ApplyLimits(owner, resources);
+        public void SetDefaults(IActor actor)
+        {
+            this.resourceTemplate.ApplyDefaults(actor, this.resources);
         }
 
-        public void AddListener(ResourceKeys key, Action<float> callback)
-        {
-            resources.AddListener(key, callback);
+        public void ApplyLimits(IActor actor, ResourceAsset resource) {
+            if (this.resourceTemplate == null)
+                return;
+
+            var newValue = this.resourceTemplate.GetClampedValue(
+                actor, resource, Get(resource));
+
+            Set(actor, resource, newValue);
         }
 
-        public void RemoveListener(ResourceKeys key, Action<float> callback)
+        public void ApplyLimitsAll(IActor actor)
         {
-            resources.RemoveListener(key, callback);
+            this.resourceTemplate.ApplyLimits(actor, this.resources);
+        }
+
+        public void AddListener(ResourceAsset resource, Action<float> callback)
+        {
+            this.resources.GetResource(resource).OnChange += callback;
+        }
+
+        public void RemoveListener(ResourceAsset resource, Action<float> callback)
+        {
+            this.resources.GetResource(resource).OnChange -= callback;
         }
     }
 }

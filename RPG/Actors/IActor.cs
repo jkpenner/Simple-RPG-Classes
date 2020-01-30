@@ -5,8 +5,10 @@ using RPG.Actors.Resources;
 namespace RPG.Actors {
     public interface IActor {
         bool IsAlive { get; }
-        ActorLevel Level { get; }
-        ActorStats Stats { get; }
-        ActorResources Resources { get; }
+        
+        float Get(StatAsset stat);
+
+        float Get(ResourceAsset resource);
+        void Set(ResourceAsset resource, float value);
     }
 }

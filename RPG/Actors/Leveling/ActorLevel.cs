@@ -3,36 +3,38 @@ using System;
 // This would be a MonoBehavour
 namespace RPG.Actors.Leveling { // : MonoBehavour {
     public class ActorLevel {
-        public readonly bool CanGainExperience;
-        public readonly IExpTemplate ExpTemplate;
-        
-        public int Current { get { 
-            return IsScaled ? ScaledLevel : NormalLevel; 
-        }}
-        
-        public int Exp { get; private set; }
-        public int RequiredExp { get; private set; }
-        
-        public bool IsScaled { get; private set; }
-        public int NormalLevel { get; private set; }
-        public int ScaledLevel { get; private set; }
+        private Action onLevelChange;
 
-        public event Action<ActorLevel> LevelChangeEvent;
+        public readonly ExpTemplateAsset ExpTemplate;
         
-        public ActorLevel(IActor owner, IExpTemplate expTemplate) {
+        public int Exp              { get; private set; }
+        public int RequiredExp      { get; private set; }
+        
+        public bool IsScaled        { get; private set; }
+        public int NormalLevel      { get; private set; }
+        public int ScaledLevel      { get; private set; }
+
+        public int Current { 
+            get { return IsScaled ? ScaledLevel : NormalLevel; }
+        }
+        
+        public bool CanGainExperience { 
+            get { return ExpTemplate != null; }
+        }
+
+        public ActorLevel(ExpTemplateAsset expTemplate, int initialLevel, Action onLevelChange) {
             this.IsScaled = false;
-            this.NormalLevel = 0;
+            this.NormalLevel = initialLevel;
             this.ScaledLevel = 0;
             
             this.Exp = 0;
-            this.ExpTemplate = expTemplate;
+            this.RequiredExp = 0;
+
+            this.onLevelChange = onLevelChange;
             
+            this.ExpTemplate = expTemplate;
             if (this.ExpTemplate != null) {
                 this.RequiredExp = this.ExpTemplate.GetRequiredExp(this.Current);
-                this.CanGainExperience = true;
-            } else {
-                this.RequiredExp = 0;
-                this.CanGainExperience = false;
             }
         }
         
@@ -66,8 +68,8 @@ namespace RPG.Actors.Leveling { // : MonoBehavour {
         }
         
         private void InvokeLevelChangeEvent() {
-            if (LevelChangeEvent != null) {
-                LevelChangeEvent.Invoke(this);
+            if (this.onLevelChange != null) {
+                this.onLevelChange.Invoke();
             }
         }
     }

@@ -1,23 +1,20 @@
+using System;
+
 namespace RPG.Actors.Resources {
     public class Resource {
         public float Amount { get; private set; }
-        public float DefaultAmount { get; private set; }
+        public event Action<float> OnChange;
 
         public Resource() {
-            this.DefaultAmount = 0f;
             this.Amount = 0f;
         }
 
-        public void SetAmount(float amount) {
-            this.Amount = amount;
-        }
-
-        public void SetDefaultAmount(float amount) {
-            this.DefaultAmount = amount;
-        }
-
-        public void SetToDefault() {
-            this.Amount = this.DefaultAmount;
+        public void Set(float amount) {
+            if (this.Amount != amount) {
+                this.Amount = amount;
+                if (this.OnChange != null)
+                    this.OnChange.Invoke(this.Amount);
+            }
         }
     }
 }

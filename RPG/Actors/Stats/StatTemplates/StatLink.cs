@@ -1,9 +1,9 @@
 namespace RPG.Actors.Stats {
     public struct StatLink {
-        public StatKeys stat;
+        public StatAsset stat;
         public float percent;
 
-        public StatLink(StatKeys stat, float percent) {
+        public StatLink(StatAsset stat, float percent) {
             this.stat = stat;
             this.percent = percent;
         }
